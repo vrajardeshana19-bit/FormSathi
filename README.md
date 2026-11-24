@@ -259,7 +259,7 @@ We are developing FormSaathi as a two-member team with clearly separated ownersh
 - Backend API integration.
 - End-to-end product testing and integration.
 
-### Member 2 – Backend and AI Development
+### Member 2 – Yuktha P
 
 **Backend, AI Processing and Voice Services**
 
