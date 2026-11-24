@@ -70,6 +70,25 @@ app.add_middleware(
 )
 
 
+@app.exception_handler(HTTPException)
+async def http_exception_handler(request, exc: HTTPException):
+    """Formats HTTP exceptions consistently."""
+    return JSONResponse(
+        status_code=exc.status_code,
+        content={"status": "error", "detail": exc.detail}
+    )
+
+
+@app.exception_handler(Exception)
+async def generic_exception_handler(request, exc: Exception):
+    """Catches unhandled errors and returns structured JSON."""
+    logger.error(f"Unhandled error handling {request.url.path}: {exc}", exc_info=True)
+    return JSONResponse(
+        status_code=500,
+        content={"status": "error", "detail": "Internal server error occurred."}
+    )
+
+
 @app.get("/health", response_model=HealthResponse, tags=["System"])
 async def health_check():
     """Returns application health and configuration readiness."""

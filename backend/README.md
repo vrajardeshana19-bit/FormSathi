@@ -87,7 +87,7 @@ pip install -r requirements.txt
 
 ### 3. Run FastAPI Server
 ```bash
-uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 The server will be reachable at `http://localhost:8000`.  
@@ -95,7 +95,7 @@ Interactive API Docs (Swagger UI): `http://localhost:8000/docs`
 
 ### 4. Run Test Suite
 ```bash
-pytest -v
+python -m pytest -v
 ```
 
 ---
