@@ -200,23 +200,22 @@ export class MockAiService {
 
     // English -> Kannada translations
     if (fromLang === 'en' && toLang === 'kn') {
-      const enToKnMap: Record<string, string> = {
-        'yes': 'ಹೌದು',
-        'no': 'ಇಲ್ಲ',
-        'true': 'ಹೌದು',
-        'false': 'ಇಲ್ಲ',
-        'agree': 'ಒಪ್ಪುತ್ತೇನೆ',
-        'i agree': 'ನಾನು ಒಪ್ಪುತ್ತೇನೆ',
-        'i live in bengaluru': 'ನಾನು ಬೆಂಗಳೂರಿನಲ್ಲಿ ವಾಸಿಸುತ್ತೇನೆ.',
-        'first year computer science': 'ಪ್ರಥಮ ವರ್ಷ ಕಂಪ್ಯೂಟರ್ ಸೈನ್ಸ್',
-        'hostel': 'ವಿದ್ಯಾರ್ಥಿನಿಲಯ (Hostel)',
-        'day scholar': 'ಡೇ ಸ್ಕಾಲರ್ (Day Scholar)',
-        'paying guest': 'ಪೇಯಿಂಗ್ ಗೆಸ್ಟ್ (PG)',
-      };
+      const enToKnEntries: [RegExp, string][] = [
+        [/\b(?:i\s+)?agree\b/i, 'ಒಪ್ಪುತ್ತೇನೆ'],
+        [/\b(?:i\s+)?disagree\b/i, 'ಒಪ್ಪುವುದಿಲ್ಲ'],
+        [/\byes\b/i, 'ಹೌದು'],
+        [/\bno\b/i, 'ಇಲ್ಲ'],
+        [/\btrue\b/i, 'ಹೌದು'],
+        [/\bfalse\b/i, 'ಇಲ್ಲ'],
+        [/\bi live in bengaluru\b/i, 'ನಾನು ಬೆಂಗಳೂರಿನಲ್ಲಿ ವಾಸಿಸುತ್ತೇನೆ.'],
+        [/\bfirst year computer science\b/i, 'ಪ್ರಥಮ ವರ್ಷ ಕಂಪ್ಯೂಟರ್ ಸೈನ್ಸ್'],
+        [/\bhostel\b/i, 'ವಿದ್ಯಾರ್ಥಿನಿಲಯ (Hostel)'],
+        [/\bday scholar\b/i, 'ಡೇ ಸ್ಕಾಲರ್ (Day Scholar)'],
+        [/\bpaying guest\b/i, 'ಪೇಯಿಂಗ್ ಗೆಸ್ಟ್ (PG)'],
+      ];
 
-      const lower = trimmed.toLowerCase();
-      for (const [en, kn] of Object.entries(enToKnMap)) {
-        if (lower.includes(en)) {
+      for (const [pattern, kn] of enToKnEntries) {
+        if (pattern.test(trimmed)) {
           return { translatedText: kn, isCertain: true };
         }
       }
@@ -254,11 +253,35 @@ export class MockAiService {
     // 1. Checkbox interpretation
     if (field.type === 'checkbox') {
       const isAffirmative =
-        /^(yes|true|check|checked|agree|i agree|confirm|sure|ok|ಹೌದು|ಸರಿ|ಒಪ್ಪಿಗೆ|ಒಪ್ಪುತ್ತೇನೆ|ದೃಢೀಕರಿಸಿ)/i.test(cleaned);
+        /^(yes|true|check|checked|agree|i agree|confirm|sure|ok|1|on|ಹೌದು|ಸರಿ|ಒಪ್ಪಿಗೆ|ಒಪ್ಪುತ್ತೇನೆ|ದೃಢೀಕರಿಸಿ)$/i.test(cleaned);
       const isNegative =
-        /^(no|false|uncheck|disagree|don't agree|ಬೇಡ|ಇಲ್ಲ|ರದ್ದು|ತಿರಸ್ಕರಿಸಿ)/i.test(cleaned);
+        /^(no|false|uncheck|unchecked|disagree|don't agree|do not agree|0|off|ಬೇಡ|ಇಲ್ಲ|ರದ್ದು|ತಿರಸ್ಕರಿಸಿ)$/i.test(cleaned);
 
-      const val = isNegative ? 'false' : isAffirmative ? 'true' : 'true';
+      if (!isAffirmative && !isNegative) {
+        return {
+          rawTranscript: cleaned,
+          interpretedValue: '',
+          displayPreview: targetDisplayLanguage === 'kn' ? 'ಅಸ್ಪಷ್ಟ ಉತ್ತರ' : 'Unclear response',
+          confidence: 0.2,
+          explanation: targetDisplayLanguage === 'kn'
+            ? 'ಚೆಕ್‌ಬಾಕ್ಸ್ ದೃಢೀಕರಣ ಅಸ್ಪಷ್ಟವಾಗಿದೆ. ದಯವಿಟ್ಟು ಹೌದು ಅಥವಾ ಇಲ್ಲ ಎಂದು ಸ್ಪಷ್ಟಪಡಿಸಿ.'
+            : 'Checkbox response was unclear. Please clearly confirm or decline.',
+          bilingual: {
+            originalText: cleaned,
+            originalLanguage: inputLanguage,
+            translatedText: cleaned,
+            translatedLanguage: inputLanguage === 'kn' ? 'en' : 'kn',
+            interpretedValue: '',
+            displayPreview: targetDisplayLanguage === 'kn' ? 'ಅಸ್ಪಷ್ಟ ಉತ್ತರ' : 'Unclear response',
+            confidence: 0.2,
+            explanation: 'Unclear consent or checkbox confirmation.',
+            isEdited: false,
+            isConfirmed: false,
+          },
+        };
+      }
+
+      const val = isNegative ? 'false' : 'true';
       interpretedVal = val;
       displayPrev =
         val === 'true'
@@ -278,35 +301,68 @@ export class MockAiService {
     // 2. Radio & Select option matching
     else if ((field.type === 'radio' || field.type === 'select') && field.options && field.options.length > 0) {
       const lower = cleaned.toLowerCase();
-      let bestMatch = field.options.find(
+      // Only match non-empty, usable options
+      const usableOptions = field.options.filter(
+        (opt) => opt.value.trim() !== '' && opt.label.trim() !== ''
+      );
+
+      let bestMatch = usableOptions.find(
         (opt) =>
           opt.value.toLowerCase() === lower ||
           opt.label.toLowerCase() === lower
       );
 
       if (!bestMatch) {
-        bestMatch = field.options.find(
-          (opt) =>
-            opt.label.toLowerCase().includes(lower) ||
-            lower.includes(opt.label.toLowerCase()) ||
-            lower.includes(opt.value.toLowerCase())
+        const matches = usableOptions.filter(
+          (opt) => {
+            const l = opt.label.toLowerCase();
+            const v = opt.value.toLowerCase();
+            return (l.length >= 3 && lower.includes(l)) || (v.length >= 3 && lower.includes(v)) || (lower.length >= 3 && (l.includes(lower) || v.includes(lower)));
+          }
         );
+        if (matches.length === 1) {
+          bestMatch = matches[0];
+        }
       }
 
       // Check Kannada equivalents for common accommodation or year choices
       if (!bestMatch && inputLanguage === 'kn') {
         if (cleaned.includes('ವಿದ್ಯಾರ್ಥಿನಿಲಯ') || cleaned.includes('ಹಾಸ್ಟೆಲ್')) {
-          bestMatch = field.options.find((o) => o.value.toLowerCase().includes('hostel'));
+          bestMatch = usableOptions.find((o) => o.value.toLowerCase().includes('hostel'));
         } else if (cleaned.includes('ಡೇ ಸ್ಕಾಲರ್') || cleaned.includes('ಮನೆ')) {
-          bestMatch = field.options.find((o) => o.value.toLowerCase().includes('day_scholar'));
+          bestMatch = usableOptions.find((o) => o.value.toLowerCase().includes('day_scholar'));
         }
       }
 
-      const selected = bestMatch || field.options[0];
-      interpretedVal = selected.value;
-      displayPrev = selected.label;
-      confidence = bestMatch ? 0.96 : 0.85;
-      explanation = `Selected: ${selected.label}`;
+      if (!bestMatch) {
+        // Do not default to arbitrary options - reject ambiguous or unmatched input
+        return {
+          rawTranscript: cleaned,
+          interpretedValue: '',
+          displayPreview: targetDisplayLanguage === 'kn' ? 'ಆಯ್ಕೆ ಹೊಂದಿಕೆಯಾಗಲಿಲ್ಲ' : 'No matching option',
+          confidence: 0.15,
+          explanation: targetDisplayLanguage === 'kn'
+            ? 'ನೀಡಿದ ಉತ್ತರಕ್ಕೆ ಯಾವುದೇ ಆಯ್ಕೆ ಹೊಂದಿಕೆಯಾಗಲಿಲ್ಲ.'
+            : 'Answer did not unambiguously match any available option.',
+          bilingual: {
+            originalText: cleaned,
+            originalLanguage: inputLanguage,
+            translatedText: cleaned,
+            translatedLanguage: inputLanguage === 'kn' ? 'en' : 'kn',
+            interpretedValue: '',
+            displayPreview: targetDisplayLanguage === 'kn' ? 'ಆಯ್ಕೆ ಹೊಂದಿಕೆಯಾಗಲಿಲ್ಲ' : 'No matching option',
+            confidence: 0.15,
+            explanation: 'No matching option found.',
+            isEdited: false,
+            isConfirmed: false,
+          },
+        };
+      }
+
+      interpretedVal = bestMatch.value;
+      displayPrev = bestMatch.label;
+      confidence = 0.96;
+      explanation = `Selected: ${bestMatch.label}`;
     }
 
     // 3. Date field normalisation
@@ -317,22 +373,59 @@ export class MockAiService {
         displayPrev = parsedDate;
         confidence = 0.95;
         explanation = 'Standard ISO 8601 YYYY-MM-DD date formatted.';
+      } else {
+        return {
+          rawTranscript: cleaned,
+          interpretedValue: '',
+          displayPreview: targetDisplayLanguage === 'kn' ? 'ಅಮಾನ್ಯ ದಿನಾಂಕ' : 'Invalid date format',
+          confidence: 0.2,
+          explanation: targetDisplayLanguage === 'kn'
+            ? 'ದಿನಾಂಕವನ್ನು ಗುರುತಿಸಲಾಗಲಿಲ್ಲ. ದಯವಿಟ್ಟು YYYY-MM-DD ಅಥವಾ ದಿನ ತಿಂಗಳು ವರ್ಷ ಮಾದರಿಯಲ್ಲಿ ನೀಡಿ.'
+            : 'Could not parse date. Please provide a clear date like 15 August 2004.',
+          bilingual: {
+            originalText: cleaned,
+            originalLanguage: inputLanguage,
+            translatedText: cleaned,
+            translatedLanguage: inputLanguage === 'kn' ? 'en' : 'kn',
+            interpretedValue: '',
+            displayPreview: targetDisplayLanguage === 'kn' ? 'ಅಮಾನ್ಯ ದಿನಾಂಕ' : 'Invalid date format',
+            confidence: 0.2,
+            explanation: 'Could not parse valid date.',
+            isEdited: false,
+            isConfirmed: false,
+          },
+        };
       }
     }
 
     // 4. Number / Currency normalisation
     else if (field.type === 'number') {
-      const numOnly = digitNormalized.replace(/[^0-9.]/g, '');
-      if (numOnly) {
-        interpretedVal = numOnly;
-        displayPrev = numOnly;
-        confidence = 0.97;
-        explanation = 'Clean numeric value extracted.';
-      } else if (digitNormalized.includes('lakh') || digitNormalized.includes('ಲಕ್ಷ')) {
-        interpretedVal = '450000';
-        displayPrev = '₹4,50,000';
-        confidence = 0.92;
-        explanation = 'Indian currency format interpreted.';
+      const parsedNumber = parseSpokenNumber(digitNormalized);
+      if (parsedNumber !== null) {
+        interpretedVal = String(parsedNumber);
+        displayPrev = String(parsedNumber);
+        confidence = 0.96;
+        explanation = 'Numeric value parsed successfully.';
+      } else {
+        return {
+          rawTranscript: cleaned,
+          interpretedValue: '',
+          displayPreview: targetDisplayLanguage === 'kn' ? 'ಅಮಾನ್ಯ ಸಂಖ್ಯೆ' : 'Invalid numeric value',
+          confidence: 0.2,
+          explanation: 'Could not parse valid number.',
+          bilingual: {
+            originalText: cleaned,
+            originalLanguage: inputLanguage,
+            translatedText: cleaned,
+            translatedLanguage: inputLanguage === 'kn' ? 'en' : 'kn',
+            interpretedValue: '',
+            displayPreview: targetDisplayLanguage === 'kn' ? 'ಅಮಾನ್ಯ ಸಂಖ್ಯೆ' : 'Invalid numeric value',
+            confidence: 0.2,
+            explanation: 'Invalid numeric input.',
+            isEdited: false,
+            isConfirmed: false,
+          },
+        };
       }
     }
 
@@ -432,7 +525,25 @@ export class MockAiService {
 }
 
 function parseSpokenDate(str: string): string | null {
-  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+  const trimmed = str.trim();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    const [, m, d] = trimmed.split('-').map(Number);
+    if (m >= 1 && m <= 12 && d >= 1 && d <= 31) return trimmed;
+    return null;
+  }
+
+  // Handle DD-MM-YYYY or DD/MM/YYYY
+  const dmyMatch = trimmed.match(/^(\d{1,2})[/-](\d{1,2})[/-](\d{4})$/);
+  if (dmyMatch) {
+    const day = dmyMatch[1].padStart(2, '0');
+    const month = dmyMatch[2].padStart(2, '0');
+    const year = dmyMatch[3];
+    const m = Number(month);
+    const d = Number(day);
+    if (m >= 1 && m <= 12 && d >= 1 && d <= 31) {
+      return `${year}-${month}-${day}`;
+    }
+  }
 
   const months: Record<string, string> = {
     january: '01', jan: '01',
@@ -449,13 +560,51 @@ function parseSpokenDate(str: string): string | null {
     december: '12', dec: '12',
   };
 
-  const match = str.match(/(\d{1,2})(?:st|nd|rd|th)?\s+([a-zA-Z]+)\s+(\d{4})/i);
+  const match = trimmed.match(/(\d{1,2})(?:st|nd|rd|th)?\s+([a-zA-Z]+)\s+(\d{4})/i);
   if (match) {
-    const day = match[1].padStart(2, '0');
-    const month = months[match[2].toLowerCase()] || '01';
-    const year = match[3];
-    return `${year}-${month}-${day}`;
+    const monthKey = match[2].toLowerCase();
+    if (months[monthKey]) {
+      const day = match[1].padStart(2, '0');
+      const month = months[monthKey];
+      const year = match[3];
+      const d = Number(day);
+      if (d >= 1 && d <= 31) {
+        return `${year}-${month}-${day}`;
+      }
+    }
   }
 
-  return '2004-08-15';
+  return null;
+}
+
+function parseSpokenNumber(str: string): number | null {
+  const cleaned = str.trim().toLowerCase();
+  
+  // Direct numeric representation e.g. "450000" or "4,50,000" or "450.50"
+  const directNumeric = cleaned.replace(/,/g, '').replace(/[₹$]/g, '').trim();
+  if (/^-?\d+(\.\d+)?$/.test(directNumeric)) {
+    return parseFloat(directNumeric);
+  }
+
+  // Indian and Western scale multipliers
+  // e.g. "4.5 lakh", "5 lakhs", "2 crore", "50 thousand", "4.5 ಲಕ್ಷ"
+  const scaleMatch = cleaned.match(/^(-?\d+(?:\.\d+)?)\s*(lakh|lakhs|crore|crores|thousand|thousands|million|millions|ಲಕ್ಷ|ಸಾವಿರ|ಕೋಟಿ)/i);
+  if (scaleMatch) {
+    const base = parseFloat(scaleMatch[1]);
+    const unit = scaleMatch[2].toLowerCase();
+    let multiplier = 1;
+    if (unit.startsWith('lakh') || unit === 'ಲಕ್ಷ') multiplier = 100000;
+    else if (unit.startsWith('crore') || unit === 'ಕೋಟಿ') multiplier = 10000000;
+    else if (unit.startsWith('thousand') || unit === 'ಸಾವಿರ') multiplier = 1000;
+    else if (unit.startsWith('million')) multiplier = 1000000;
+    return base * multiplier;
+  }
+
+  // Extract clean digits if embedded with text e.g. "it is 45000"
+  const embeddedMatch = cleaned.match(/\b\d+(\.\d+)?\b/);
+  if (embeddedMatch) {
+    return parseFloat(embeddedMatch[0]);
+  }
+
+  return null;
 }
