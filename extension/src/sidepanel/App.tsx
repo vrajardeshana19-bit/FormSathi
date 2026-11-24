@@ -88,9 +88,26 @@ export const App: React.FC = () => {
       } else if (res && res.data && res.data.fields && res.data.fields.length === 0) {
         setPageStatus('no_form');
         setPageStatusMessage('No interactive form fields found on this webpage.');
+        // Do not overwrite with mock form in a real browser tab without forms
+        setFormData({
+          id: 'empty-form',
+          title: 'No Form Detected',
+          detectedAt: new Date().toISOString(),
+          url: '',
+          fields: [],
+        });
+      } else if (res && !res.success && res.error) {
+        setPageStatus('no_form');
+        setPageStatusMessage(res.message || 'Could not scan page form.');
       } else {
-        // Fallback to mock form in dev / preview
-        setPageStatus('connected');
+        // Fallback to mock form in dev / preview when outside chrome extension
+        if (typeof chrome === 'undefined' || !chrome.runtime?.sendMessage) {
+          setFormData(MOCK_SCHOLARSHIP_FORM);
+          setPageStatus('connected');
+        } else {
+          setPageStatus('no_form');
+          setPageStatusMessage('No interactive form fields found on this webpage.');
+        }
       }
     });
   }, [sendContentScriptMessage]);
