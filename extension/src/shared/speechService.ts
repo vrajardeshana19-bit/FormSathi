@@ -32,6 +32,24 @@ export class SpeechService {
   }
 
   /**
+   * Request microphone permission explicitly via navigator.mediaDevices.getUserMedia
+   * This is required in Chrome extensions and side panels because Web Speech API
+   * fails silently with 'not-allowed' instead of triggering Chrome's permission prompt.
+   */
+  public static async requestMicrophonePermission(): Promise<boolean> {
+    try {
+      if (typeof navigator !== 'undefined' && navigator.mediaDevices?.getUserMedia) {
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        stream.getTracks().forEach((track) => track.stop());
+        return true;
+      }
+    } catch (e) {
+      console.warn('getUserMedia permission request failed or was dismissed:', e);
+    }
+    return false;
+  }
+
+  /**
    * Starts live browser speech recognition using the designated language locale.
    */
   public static startListening(
