@@ -142,7 +142,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
         </label>
       </section>
 
-      {/* 4. Accessibility Preferences */}
+      {/* 4. Accessibility & Testing Preferences */}
       <section className="bg-paper-card p-3.5 rounded-lg border border-line-border shadow-fine space-y-2">
         <div className="flex items-center gap-1.5 text-teal-brand">
           <Eye className="w-4 h-4" />
@@ -160,6 +160,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({
             type="checkbox"
             checked={settings.highContrast}
             onChange={(e) => onUpdateSettings({ highContrast: e.target.checked })}
+            className="w-4 h-4 accent-teal-brand rounded cursor-pointer"
+          />
+        </label>
+
+        <label className="flex items-center justify-between text-xs cursor-pointer pt-2 border-t border-line-soft">
+          <div className="space-y-0.5 pr-2">
+            <span className="font-semibold text-ink-deep text-[11.5px] block">Simulated Voice Input (Demo Mode)</span>
+            <span className="text-[10.5px] text-ink-muted block">
+              Instantly simulates voice responses when microphone is blocked by Chrome sandbox permissions.
+            </span>
+          </div>
+          <input
+            type="checkbox"
+            checked={settings.mockMode}
+            onChange={(e) => onUpdateSettings({ mockMode: e.target.checked })}
             className="w-4 h-4 accent-teal-brand rounded cursor-pointer"
           />
         </label>
