@@ -165,12 +165,15 @@ export const App: React.FC = () => {
   };
 
   // Start Real Browser Speech Recognition
-  const handleStartListening = () => {
+  const handleStartListening = async () => {
     if (!currentField) return;
     MockAiService.stopSpeaking();
     setIsSpeaking(false);
     setVoiceError(null);
     setLiveTranscript('');
+
+    // Trigger Chrome's native microphone permission prompt if not yet granted
+    await SpeechService.requestMicrophonePermission();
 
     const started = SpeechService.startListening(settings.speechLanguage, {
       onStart: () => {
