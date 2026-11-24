@@ -348,12 +348,6 @@ Once the MVP is stable, potential improvements include:
 - Form completion insights and time-saving metrics.
 - Partnerships with educational institutions, NGOs and digital service centres.
 
----
-
-## Contributors
-
-- **Vraj Ardeshana** – Frontend, Chrome Extension and Product Development
-- **Member 2** – Backend, AI and Voice Integration
 
 ---
 
