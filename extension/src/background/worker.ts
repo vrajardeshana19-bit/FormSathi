@@ -30,9 +30,14 @@ function isRestrictedUrl(url?: string): boolean {
   );
 }
 
-// Unified message router with programmatic content script injection fallback
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  if (message.target === 'CONTENT_SCRIPT') {
+// Unified message router with sender validation & programmatic content script injection fallback
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (sender.id && sender.id !== chrome.runtime.id) {
+    sendResponse({ success: false, error: 'UNAUTHORIZED_SENDER' });
+    return false;
+  }
+
+  if (message && message.target === 'CONTENT_SCRIPT') {
     handleContentScriptRequest(message.payload, sendResponse);
     return true; // Keep message channel open for async response
   }

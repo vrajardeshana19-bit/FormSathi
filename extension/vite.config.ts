@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite';
+import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 import { existsSync, readFileSync } from 'fs';
@@ -12,20 +12,17 @@ export default defineConfig({
         server.middlewares.use('/demo', (_req, res, next) => {
           const demoPath = resolve(__dirname, '../demo/scholarship-form/index.html');
           if (existsSync(demoPath)) {
-            const html = readFileSync(demoPath, 'utf-8');
             res.setHeader('Content-Type', 'text/html');
-            res.end(html);
+            res.end(readFileSync(demoPath, 'utf-8'));
             return;
           }
           next();
         });
-
         server.middlewares.use('/test', (_req, res, next) => {
           const testPath = resolve(__dirname, '../demo/comprehensive-form/index.html');
           if (existsSync(testPath)) {
-            const html = readFileSync(testPath, 'utf-8');
             res.setHeader('Content-Type', 'text/html');
-            res.end(html);
+            res.end(readFileSync(testPath, 'utf-8'));
             return;
           }
           next();
@@ -33,10 +30,8 @@ export default defineConfig({
       },
     },
   ],
-  server: {
-    port: 5173,
-    host: true,
-  },
+  test: { environment: 'jsdom' },
+  server: { port: 5173, host: true },
   build: {
     outDir: 'dist',
     emptyOutDir: true,

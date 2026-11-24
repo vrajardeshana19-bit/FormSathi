@@ -1,29 +1,35 @@
 import { FormField, FormMetadata, FieldType } from '../shared/types';
 
 const SENSITIVE_PATTERNS = [
-  /password/i,
-  /passwd/i,
-  /pin/i,
-  /otp/i,
-  /cvv/i,
-  /cvc/i,
-  /card_?num/i,
-  /card_?no/i,
+  /\bpass(?:word|wd)\b/i,
+  /\b(?:atm|security|mpin|upi)[-_ ]?pin\b/i,
+  /\bpin\b(?!\s*code)/i, // Matches standalone 'pin' but not 'pincode' or 'pin code'
+  /\botp\b/i,
+  /\bcvv\b/i,
+  /\bcvc\b/i,
+  /card_?(?:num|no|number)/i,
   /credit_?card/i,
   /debit_?card/i,
-  /aadhaar/i,
-  /aadhar/i,
-  /uidai/i,
-  /pan_?card/i,
-  /pan_?num/i,
-  /pan_?no/i,
-  /ssn/i,
+  /aadhaar|aadhar|uidai/i,
+  /pan_?(?:card|num|no|number)/i,
+  /\bssn\b/i,
   /social_?sec/i,
   /bank_?acc/i,
-  /account_?num/i,
-  /account_?no/i,
-  /ifsc/i,
-  /secret/i,
+  /account_?(?:num|no|number)/i,
+  /\bifsc\b/i,
+  /\bsecret\b/i,
+];
+
+// Patterns that must NOT be flagged as sensitive
+const NON_SENSITIVE_PATTERNS = [
+  /pincode/i,
+  /pin[-_ ]code/i,
+  /postal[-_ ]?code/i,
+  /zip[-_ ]?code/i,
+  /opinion/i,
+  /mapping/i,
+  /typing[-_ ]?speed/i,
+  /shipping[-_ ]?address/i,
 ];
 
 function isFieldSensitive(element: HTMLElement): boolean {
@@ -37,14 +43,25 @@ function isFieldSensitive(element: HTMLElement): boolean {
   const placeholder = 'placeholder' in element ? (element as HTMLInputElement).placeholder || '' : '';
   const autocomplete = element.getAttribute('autocomplete') || '';
 
-  const combinedString = `${id} ${name} ${ariaLabel} ${placeholder} ${autocomplete}`;
+  const combinedString = `${id} ${name} ${ariaLabel} ${placeholder} ${autocomplete}`.trim();
+  if (!combinedString) return false;
+
+  // Check benign exclusions first
+  if (NON_SENSITIVE_PATTERNS.some((pat) => pat.test(combinedString))) {
+    // If it also matches strong sensitive patterns like password/cvv/aadhaar, still flag
+    const strongSensitive = /\bpass(?:word|wd)\b|\bcvv\b|\botp\b|aadhaar|aadhar|credit_?card/i;
+    if (!strongSensitive.test(combinedString)) {
+      return false;
+    }
+  }
+
   return SENSITIVE_PATTERNS.some((pattern) => pattern.test(combinedString));
 }
 
 function findLabelText(element: HTMLElement): string {
   // 1. Explicit <label for="id">
   if (element.id) {
-    const labelEl = document.querySelector(`label[for="${CSS.escape(element.id)}"]`);
+    const labelEl = document.querySelector(`label[for="${safeCssEscape(element.id)}"]`);
     if (labelEl && labelEl.textContent?.trim()) {
       return cleanLabelText(labelEl.textContent);
     }
@@ -119,6 +136,13 @@ function cleanLabelText(raw: string): string {
     .trim();
 }
 
+function safeCssEscape(value: string): string {
+  if (typeof CSS !== 'undefined' && CSS.escape) {
+    return CSS.escape(value);
+  }
+  return value.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+}
+
 /**
  * Ensures each scanned element has a persistent, unique data-formsaathi-id attribute.
  * This guarantees 100% stable collision-free selectors even with missing IDs or duplicate names.
@@ -140,12 +164,16 @@ export function scanCurrentPageForm(): FormMetadata {
     document.title ||
     'Online Form';
 
-  // Find all candidate interactive elements
+  // Find all candidate interactive elements, skipping disabled or readonly non-fillable fields
   const allElements = Array.from(
     document.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>(
       'input:not([type="hidden"]):not([type="submit"]):not([type="button"]):not([type="reset"]), select, textarea'
     )
   ).filter((el) => {
+    // Skip disabled elements or readonly inputs/textareas
+    if (el.disabled) return false;
+    if ('readOnly' in el && (el as HTMLInputElement).readOnly) return false;
+
     const style = window.getComputedStyle(el);
     return style.display !== 'none' && style.visibility !== 'hidden' && style.opacity !== '0';
   });
@@ -172,7 +200,7 @@ export function scanCurrentPageForm(): FormMetadata {
 
         // Find all radio options in this group
         const radioGroup = Array.from(
-          document.querySelectorAll<HTMLInputElement>(`input[type="radio"][name="${CSS.escape(radioName)}"]`)
+          document.querySelectorAll<HTMLInputElement>(`input[type="radio"][name="${safeCssEscape(radioName)}"]`)
         );
 
         const groupLabel = findLabelText(el);
@@ -205,7 +233,7 @@ export function scanCurrentPageForm(): FormMetadata {
           isSensitive: isSensitive,
           value: isSensitive ? '' : (selectedRadio?.value || ''),
           status: isSensitive ? 'manual_required' : selectedRadio ? 'completed' : 'pending',
-          selector: `input[type="radio"][name="${CSS.escape(radioName)}"]`,
+          selector: `input[type="radio"][name="${safeCssEscape(radioName)}"]`,
           helpText: `Select an option for ${groupLabel}`,
           plainQuestion: {
             en: `Which option do you choose for ${groupLabel}?`,
@@ -223,7 +251,7 @@ export function scanCurrentPageForm(): FormMetadata {
 
     // 2. Assign stable unique identifier
     const stableId = ensureStableIdentifier(el, elementCounter);
-    const selector = `[data-formsaathi-id="${CSS.escape(stableId)}"]`;
+    const selector = `[data-formsaathi-id="${safeCssEscape(stableId)}"]`;
 
     // 3. Resolve label & disambiguate duplicates
     let rawLabel = findLabelText(el);
