@@ -1,16 +1,15 @@
 export interface FillResult { success: boolean; message: string; filledValue?: string }
 
+type HighlightState = { timer?: number; styles: { outline: string; transition: string; boxShadow: string } };
 const normalize = (value: string) => value.trim().toLowerCase().replace(/[_-]+/g, ' ').replace(/\s+/g, ' ');
 
 function setNativeChecked(element: HTMLInputElement, checked: boolean): void {
-  const prototype = Object.getPrototypeOf(element) as HTMLInputElement;
   const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'checked')?.set;
   if (setter) setter.call(element, checked); else element.checked = checked;
 }
 
 function setNativeValue(element: HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement, value: string): void {
-  const prototype = Object.getPrototypeOf(element);
-  const setter = Object.getOwnPropertyDescriptor(prototype, 'value')?.set;
+  const setter = Object.getOwnPropertyDescriptor(Object.getPrototypeOf(element), 'value')?.set;
   if (setter) setter.call(element, value); else (element as HTMLInputElement).value = value;
 }
 
@@ -33,41 +32,31 @@ export function fillFormField(selector: string, value: string): FillResult {
 
     if (first instanceof HTMLInputElement && first.type === 'radio') {
       if (first.disabled || first.readOnly) return { success: false, message: 'Radio field is disabled or readonly.' };
-      const name = first.name;
-      const radios = name
-        ? Array.from(document.querySelectorAll<HTMLInputElement>(`input[type="radio"][name="${CSS.escape(name)}"]`))
-        : matches.filter((e): e is HTMLInputElement => e instanceof HTMLInputElement);
+      const radios = first.name
+        ? Array.from(document.querySelectorAll<HTMLInputElement>(`input[type="radio"][name="${CSS.escape(first.name)}"]`))
+        : matches.filter((el): el is HTMLInputElement => el instanceof HTMLInputElement);
       const answer = normalize(value);
       if (!answer) return { success: false, message: 'A radio answer is required.' };
-
       const exact = radios.filter(r => normalize(r.value) === answer || normalize(getLabelText(r)) === answer);
-      if (exact.length === 1) {
-        const matched = exact[0];
-        matched.focus();
-        setNativeChecked(matched, true);
-        matched.dispatchEvent(new Event('input', { bubbles: true }));
-        matched.dispatchEvent(new Event('change', { bubbles: true }));
-        if (!matched.checked) return { success: false, message: 'Radio selection could not be applied.' };
-        highlightFilledElement(matched);
-        return { success: true, message: `Selected radio option "${matched.value}"`, filledValue: matched.value };
-      }
+      let matched = exact.length === 1 ? exact[0] : undefined;
       if (exact.length > 1) return { success: false, message: 'Radio answer is ambiguous. No option was changed.' };
-
-      const normalizedMatches = radios.filter(r => {
-        const label = normalize(getLabelText(r));
-        return label.length > 0 && (normalize(r.value).includes(answer) || answer.includes(normalize(r.value)) || label.includes(answer) || answer.includes(label));
-      });
-      if (normalizedMatches.length === 1) {
-        const matched = normalizedMatches[0];
-        matched.focus();
-        setNativeChecked(matched, true);
-        matched.dispatchEvent(new Event('input', { bubbles: true }));
-        matched.dispatchEvent(new Event('change', { bubbles: true }));
-        if (!matched.checked) return { success: false, message: 'Radio selection could not be applied.' };
-        highlightFilledElement(matched);
-        return { success: true, message: `Selected radio option "${matched.value}"`, filledValue: matched.value };
+      if (!matched) {
+        const partial = radios.filter(r => {
+          const label = normalize(getLabelText(r));
+          const optionValue = normalize(r.value);
+          return label.length > 0 && ((optionValue.length > 0 && (optionValue.includes(answer) || answer.includes(optionValue))) || label.includes(answer) || answer.includes(label));
+        });
+        if (partial.length === 1) matched = partial[0];
+        else return { success: false, message: 'No unambiguous radio option matched the answer. Existing selection was left unchanged.' };
       }
-      return { success: false, message: 'No unambiguous radio option matched the answer. Existing selection was left unchanged.' };
+      if (matched.disabled) return { success: false, message: 'Matching radio option is disabled.' };
+      matched.focus();
+      setNativeChecked(matched, true);
+      matched.dispatchEvent(new Event('input', { bubbles: true }));
+      matched.dispatchEvent(new Event('change', { bubbles: true }));
+      if (!matched.checked) return { success: false, message: 'Radio selection could not be applied.' };
+      highlightFilledElement(matched);
+      return { success: true, message: `Selected radio option "${matched.value}"`, filledValue: matched.value };
     }
 
     if (first instanceof HTMLInputElement && first.type === 'checkbox') {
@@ -90,27 +79,21 @@ export function fillFormField(selector: string, value: string): FillResult {
       if (first.disabled) return { success: false, message: 'Dropdown is disabled.' };
       const answer = normalize(value);
       if (!answer) return { success: false, message: 'A dropdown answer is required.' };
-      const usable = Array.from(first.options).filter(opt => !opt.disabled && (opt.value.trim() !== '' || opt.text.trim() !== '') && normalize(opt.text) !== '' && normalize(opt.value) !== '');
+      const usable = Array.from(first.options).filter(opt => !opt.disabled && opt.value.trim() !== '' && opt.text.trim() !== '');
       const exact = usable.filter(opt => normalize(opt.value) === answer || normalize(opt.text) === answer);
-      if (exact.length === 1) {
-        setNativeValue(first, exact[0].value);
-        first.dispatchEvent(new Event('input', { bubbles: true }));
-        first.dispatchEvent(new Event('change', { bubbles: true }));
-        if (first.value !== exact[0].value) return { success: false, message: 'Dropdown selection could not be applied.' };
-        highlightFilledElement(first);
-        return { success: true, message: `Selected: ${exact[0].text}`, filledValue: exact[0].text };
-      }
       if (exact.length > 1) return { success: false, message: 'Dropdown answer is ambiguous. No option was changed.' };
-      const partial = usable.filter(opt => normalize(opt.text).includes(answer) || answer.includes(normalize(opt.text)) || normalize(opt.value).includes(answer) || answer.includes(normalize(opt.value)));
-      if (partial.length === 1) {
-        setNativeValue(first, partial[0].value);
-        first.dispatchEvent(new Event('input', { bubbles: true }));
-        first.dispatchEvent(new Event('change', { bubbles: true }));
-        if (first.value !== partial[0].value) return { success: false, message: 'Dropdown selection could not be applied.' };
-        highlightFilledElement(first);
-        return { success: true, message: `Selected: ${partial[0].text}`, filledValue: partial[0].text };
+      let selected = exact[0];
+      if (!selected) {
+        const partial = usable.filter(opt => normalize(opt.text).includes(answer) || answer.includes(normalize(opt.text)) || normalize(opt.value).includes(answer) || answer.includes(normalize(opt.value)));
+        if (partial.length !== 1) return { success: false, message: 'No unambiguous dropdown option matched the answer. Existing selection was left unchanged.' };
+        selected = partial[0];
       }
-      return { success: false, message: 'No unambiguous dropdown option matched the answer. Existing selection was left unchanged.' };
+      setNativeValue(first, selected.value);
+      first.dispatchEvent(new Event('input', { bubbles: true }));
+      first.dispatchEvent(new Event('change', { bubbles: true }));
+      if (first.value !== selected.value) return { success: false, message: 'Dropdown selection could not be applied.' };
+      highlightFilledElement(first);
+      return { success: true, message: `Selected: ${selected.text}`, filledValue: selected.text };
     }
 
     if (first instanceof HTMLInputElement || first instanceof HTMLTextAreaElement) {
@@ -133,10 +116,10 @@ export function highlightActiveField(selector: string): void {
   const element = document.querySelector<HTMLElement>(selector);
   if (!element) return;
   element.scrollIntoView?.({ behavior: 'smooth', block: 'center' });
-  const state = (element as HTMLElement & { __fsHighlight?: { timer?: number; styles: Record<string,string> } }).__fsHighlight;
+  const target = element as HTMLElement & { __fsHighlight?: HighlightState };
+  const state = target.__fsHighlight;
   if (state?.timer) window.clearTimeout(state.timer);
-  const original = { outline: element.style.outline, transition: element.style.transition, boxShadow: element.style.boxShadow };
-  (element as any).__fsHighlight = { styles: original };
+  const original = state?.styles || { outline: element.style.outline, transition: element.style.transition, boxShadow: element.style.boxShadow };
   element.style.transition = 'all 0.3s ease-in-out';
   element.style.outline = '2px solid #174B4F';
   element.style.boxShadow = '0 0 0 3px rgba(23, 75, 79, 0.15)';
@@ -144,26 +127,23 @@ export function highlightActiveField(selector: string): void {
     element.style.outline = original.outline;
     element.style.boxShadow = original.boxShadow;
     element.style.transition = original.transition;
-    delete (element as any).__fsHighlight;
+    delete target.__fsHighlight;
   }, 2500);
-  (element as any).__fsHighlight.timer = timer;
+  target.__fsHighlight = { timer, styles: original };
 }
 
 function highlightFilledElement(element: HTMLElement): void {
   const existing = element.parentElement?.querySelector('.formsaathi-filled-badge');
   existing?.remove();
-  const originalTransition = element.style.transition;
-  const originalBorder = element.style.borderColor;
-  const originalBackground = element.style.backgroundColor;
+  const original = { transition: element.style.transition, borderColor: element.style.borderColor, backgroundColor: element.style.backgroundColor };
   element.style.transition = 'border-color 0.4s ease, background-color 0.4s ease';
   element.style.borderColor = '#174B4F';
   element.style.backgroundColor = '#EEF4F1';
   window.setTimeout(() => {
-    element.style.transition = originalTransition;
-    element.style.borderColor = originalBorder;
-    element.style.backgroundColor = originalBackground;
+    element.style.transition = original.transition;
+    element.style.borderColor = original.borderColor;
+    element.style.backgroundColor = original.backgroundColor;
   }, 3000);
-
   const badge = document.createElement('span');
   badge.className = 'formsaathi-filled-badge';
   badge.textContent = '✓ FormSaathi';
