@@ -1,0 +1,10 @@
+{
+  "name": "formsaathi-workspace",
+  "version": "0.1.0",
+  "private": true,
+  "description": "FormSaathi – Voice-First Browser Form Assistant Workspace",
+  "scripts": {
+    "build": "npm --prefix extension run build",
+    "dev": "npm --prefix extension run dev"
+  }
+}

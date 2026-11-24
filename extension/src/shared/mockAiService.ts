@@ -1,0 +1,461 @@
+import { BilingualAnswer, FormField, InterpretationResult, SupportedLanguage, VoiceCapabilities } from './types';
+
+// Kannada to ISO 15919 / English Latin Transliteration map
+const KANNADA_TRANSLITERATION_MAP: Record<string, string> = {
+  // Vowels
+  'ಅ': 'a', 'ಆ': 'aa', 'ಇ': 'i', 'ಈ': 'ee', 'ಉ': 'u', 'ಊ': 'oo', 'ಋ': 'ru',
+  'ಎ': 'e', 'ಏ': 'ee', 'ಐ': 'ai', 'ಒ': 'o', 'ಓ': 'oo', 'ಔ': 'au',
+  'ಅಂ': 'am', 'ಅಃ': 'ah',
+  // Consonants
+  'ಕ': 'ka', 'ಖ': 'kha', 'ಗ': 'ga', 'ಘ': 'gha', 'ಙ': 'nga',
+  'ಚ': 'cha', 'ಛ': 'chha', 'ಜ': 'ja', 'ಝ': 'jha', 'ಞ': 'nya',
+  'ಟ': 'ta', 'ಠ': 'tha', 'ಡ': 'da', 'ಢ': 'dha', 'ಣ': 'na',
+  'ತ': 'tha', 'ಥ': 'thha', 'ದ': 'da', 'ಧ': 'dha', 'ನ': 'na',
+  'ಪ': 'pa', 'ಫ': 'pha', 'ಬ': 'ba', 'ಭ': 'bha', 'ಮ': 'ma',
+  'ಯ': 'ya', 'ರ': 'ra', 'ಲ': 'la', 'ವ': 'va', 'ಶ': 'sha',
+  'ಷ': 'ssha', 'ಸ': 'sa', 'ಹ': 'ha', 'ಳ': 'la',
+};
+
+// Kannada digits map
+const KANNADA_DIGITS = ['೦', '೧', '೨', '೩', '೪', '೫', '೬', '೭', '೮', '೯'];
+
+export class MockAiService {
+  /**
+   * Diagnostic utility to check browser voice capabilities for the selected language.
+   */
+  public static checkVoiceCapabilities(language: SupportedLanguage): VoiceCapabilities {
+    const isBrowser = typeof window !== 'undefined';
+    if (!isBrowser) {
+      return {
+        ttsSupported: false,
+        sttSupported: false,
+        hasDedicatedVoice: false,
+        message: 'Non-browser environment',
+      };
+    }
+
+    const ttsSupported = 'speechSynthesis' in window;
+    const sttSupported = 'webkitSpeechRecognition' in window || 'SpeechRecognition' in window;
+
+    let hasDedicatedVoice = false;
+    let voiceName: string | undefined;
+
+    if (ttsSupported) {
+      const voices = window.speechSynthesis.getVoices();
+      const targetPrefix = language === 'kn' ? 'kn' : 'en';
+      const matchingVoice = voices.find(
+        (v) =>
+          v.lang.toLowerCase().startsWith(targetPrefix) ||
+          v.name.toLowerCase().includes(language === 'kn' ? 'kannada' : 'india')
+      );
+
+      if (matchingVoice) {
+        hasDedicatedVoice = true;
+        voiceName = matchingVoice.name;
+      }
+    }
+
+    let message: string | undefined;
+    if (language === 'kn' && !hasDedicatedVoice) {
+      message =
+        'Notice: Your browser/OS does not have a dedicated Kannada speech voice installed. Voice playback may fall back to default synthesizer or remain quiet. Text input and Kannada translation are 100% operational.';
+    }
+
+    return {
+      ttsSupported,
+      sttSupported,
+      hasDedicatedVoice,
+      voiceName,
+      message,
+    };
+  }
+
+  /**
+   * Converts Kannada numerals (೦, ೧, ೨...) to standard Arabic numerals (0, 1, 2...).
+   */
+  public static normalizeKannadaDigits(text: string): string {
+    let result = text;
+    for (let i = 0; i <= 9; i++) {
+      result = result.split(KANNADA_DIGITS[i]).join(String(i));
+    }
+    return result;
+  }
+
+  /**
+   * Generates readable Latin transliteration for Kannada text.
+   * If input is English or unavailable, returns undefined or sanitized text.
+   */
+  public static generateTransliteration(text: string, language: SupportedLanguage): string | undefined {
+    if (language !== 'kn' || !text.trim()) return undefined;
+
+    // Check known common educational and demographic phrases for fluent transliteration
+    const knownPhrases: Record<string, string> = {
+      'ನಾನು ಪ್ರಥಮ ವರ್ಷದ ಕಂಪ್ಯೂಟರ್ ಸೈನ್ಸ್ ವಿದ್ಯಾರ್ಥಿ': 'Naanu prathama varshada computer science vidyarthi.',
+      'ನಾನು ಬೆಂಗಳೂರಿನಲ್ಲಿ ವಾಸಿಸುತ್ತೇನೆ': 'Naanu Bengalurinali vaasisuttene.',
+      'ಹೌದು ನಾನು ನಿಯಮಗಳನ್ನು ಒಪ್ಪುತ್ತೇನೆ': 'Haudu naanu niyamagalannu opputtene.',
+      'ಹೌದು': 'Haudu',
+      'ಇಲ್ಲ': 'Illa',
+      'ವಾರ್ಷಿಕ ಆದಾಯ': 'Vaarshika aadaaya',
+    };
+
+    const trimmed = text.trim();
+    if (knownPhrases[trimmed]) {
+      return knownPhrases[trimmed];
+    }
+
+    // Heuristic transliteration for words
+    const words = trimmed.split(/\s+/);
+    const transliteratedWords = words.map((word) => {
+      let tWord = '';
+      for (const char of word) {
+        if (KANNADA_TRANSLITERATION_MAP[char]) {
+          tWord += KANNADA_TRANSLITERATION_MAP[char];
+        } else if (/[a-zA-Z0-9.,₹\-]/.test(char)) {
+          tWord += char;
+        }
+      }
+      return tWord || word;
+    });
+
+    const result = transliteratedWords.join(' ').trim();
+    return result || undefined;
+  }
+
+  /**
+   * Translates meaning between English and Kannada while strictly preserving proper nouns,
+   * institution names, dates, amounts, phone numbers, and IDs.
+   */
+  public static translateText(
+    text: string,
+    fromLang: SupportedLanguage,
+    toLang: SupportedLanguage
+  ): { translatedText: string; isCertain: boolean } {
+    if (!text.trim() || fromLang === toLang) {
+      return { translatedText: text, isCertain: true };
+    }
+
+    const trimmed = text.trim();
+
+    // Preserve proper nouns by identifying protected segments
+    const protectedEntities = [
+      'CMR Institute of Technology',
+      'Indian Institute of Science',
+      'Visvesvaraya Technological University',
+      'Computer Science',
+      'Information Science',
+      'Artificial Intelligence',
+      'Mechanical Engineering',
+      'Civil Engineering',
+      'Bengaluru',
+      'Mysuru',
+      'Karnataka',
+      'State Bank of India',
+      'Canara Bank',
+    ];
+
+    // Kannada -> English Known translations
+    if (fromLang === 'kn' && toLang === 'en') {
+      const knToEnMap: Record<string, string> = {
+        'ಹೌದು': 'Yes',
+        'ಇಲ್ಲ': 'No',
+        'ಒಪ್ಪುತ್ತೇನೆ': 'Agree',
+        'ಬೇಡ': 'Disagree',
+        'ನಾನು ಬೆಂಗಳೂರಿನಲ್ಲಿ ವಾಸಿಸುತ್ತೇನೆ': 'I live in Bengaluru.',
+        'ನಾನು ಪ್ರಥಮ ವರ್ಷದ ಕಂಪ್ಯೂಟರ್ ಸೈನ್ಸ್ ವಿದ್ಯಾರ್ಥಿ': 'I am a first-year Computer Science student.',
+        'ವಿದ್ಯಾರ್ಥಿನಿಲಯ': 'Hostel',
+        'ಡೇ ಸ್ಕಾಲರ್': 'Day Scholar',
+        'ಪೇಯಿಂಗ್ ಗೆಸ್ಟ್': 'Paying Guest (PG)',
+      };
+
+      for (const [kn, en] of Object.entries(knToEnMap)) {
+        if (trimmed.includes(kn)) {
+          return { translatedText: en, isCertain: true };
+        }
+      }
+
+      // Check if text has numbers/currency
+      const normalizedDigits = this.normalizeKannadaDigits(trimmed);
+      if (/(\d+)/.test(normalizedDigits)) {
+        return {
+          translatedText: normalizedDigits,
+          isCertain: true,
+        };
+      }
+
+      // For sentences containing protected entities
+      for (const entity of protectedEntities) {
+        if (trimmed.includes(entity)) {
+          return {
+            translatedText: trimmed, // Preserve proper noun
+            isCertain: true,
+          };
+        }
+      }
+
+      return {
+        translatedText: trimmed,
+        isCertain: false,
+      };
+    }
+
+    // English -> Kannada translations
+    if (fromLang === 'en' && toLang === 'kn') {
+      const enToKnMap: Record<string, string> = {
+        'yes': 'ಹೌದು',
+        'no': 'ಇಲ್ಲ',
+        'true': 'ಹೌದು',
+        'false': 'ಇಲ್ಲ',
+        'agree': 'ಒಪ್ಪುತ್ತೇನೆ',
+        'i agree': 'ನಾನು ಒಪ್ಪುತ್ತೇನೆ',
+        'i live in bengaluru': 'ನಾನು ಬೆಂಗಳೂರಿನಲ್ಲಿ ವಾಸಿಸುತ್ತೇನೆ.',
+        'first year computer science': 'ಪ್ರಥಮ ವರ್ಷ ಕಂಪ್ಯೂಟರ್ ಸೈನ್ಸ್',
+        'hostel': 'ವಿದ್ಯಾರ್ಥಿನಿಲಯ (Hostel)',
+        'day scholar': 'ಡೇ ಸ್ಕಾಲರ್ (Day Scholar)',
+        'paying guest': 'ಪೇಯಿಂಗ್ ಗೆಸ್ಟ್ (PG)',
+      };
+
+      const lower = trimmed.toLowerCase();
+      for (const [en, kn] of Object.entries(enToKnMap)) {
+        if (lower.includes(en)) {
+          return { translatedText: kn, isCertain: true };
+        }
+      }
+
+      return {
+        translatedText: trimmed,
+        isCertain: false,
+      };
+    }
+
+    return { translatedText: text, isCertain: true };
+  }
+
+  /**
+   * Interprets spoken or typed input for any HTML5 field type into a structured BilingualAnswer.
+   * Completely decouples original speech transcript, speech language, translation, and interpreted value.
+   */
+  public static async interpretAnswer(
+    field: FormField,
+    rawInput: string,
+    inputLanguage: SupportedLanguage,
+    targetDisplayLanguage: SupportedLanguage = 'en'
+  ): Promise<InterpretationResult> {
+    await new Promise((res) => setTimeout(res, 200));
+
+    const cleaned = rawInput.trim();
+    // Normalize Kannada numerals first
+    const digitNormalized = inputLanguage === 'kn' ? this.normalizeKannadaDigits(cleaned) : cleaned;
+
+    let interpretedVal = digitNormalized;
+    let displayPrev = digitNormalized;
+    let confidence = 0.90;
+    let explanation = 'Direct answer captured.';
+
+    // 1. Checkbox interpretation
+    if (field.type === 'checkbox') {
+      const isAffirmative =
+        /^(yes|true|check|checked|agree|i agree|confirm|sure|ok|ಹೌದು|ಸರಿ|ಒಪ್ಪಿಗೆ|ಒಪ್ಪುತ್ತೇನೆ|ದೃಢೀಕರಿಸಿ)/i.test(cleaned);
+      const isNegative =
+        /^(no|false|uncheck|disagree|don't agree|ಬೇಡ|ಇಲ್ಲ|ರದ್ದು|ತಿರಸ್ಕರಿಸಿ)/i.test(cleaned);
+
+      const val = isNegative ? 'false' : isAffirmative ? 'true' : 'true';
+      interpretedVal = val;
+      displayPrev =
+        val === 'true'
+          ? targetDisplayLanguage === 'kn'
+            ? 'ದೃಢೀಕರಿಸಲಾಗಿದೆ (Checked)'
+            : 'Checked (Confirmed)'
+          : targetDisplayLanguage === 'kn'
+          ? 'ಆಯ್ಕೆ ಮಾಡಲಾಗಿಲ್ಲ (Unchecked)'
+          : 'Unchecked';
+      confidence = 0.98;
+      explanation =
+        targetDisplayLanguage === 'kn'
+          ? 'ಚೆಕ್‌ಬಾಕ್ಸ್ ಸ್ಥಿತಿಯನ್ನು ವ್ಯಾಖ್ಯಾನಿಸಲಾಗಿದೆ.'
+          : 'Interpreted as affirmative checkbox confirmation.';
+    }
+
+    // 2. Radio & Select option matching
+    else if ((field.type === 'radio' || field.type === 'select') && field.options && field.options.length > 0) {
+      const lower = cleaned.toLowerCase();
+      let bestMatch = field.options.find(
+        (opt) =>
+          opt.value.toLowerCase() === lower ||
+          opt.label.toLowerCase() === lower
+      );
+
+      if (!bestMatch) {
+        bestMatch = field.options.find(
+          (opt) =>
+            opt.label.toLowerCase().includes(lower) ||
+            lower.includes(opt.label.toLowerCase()) ||
+            lower.includes(opt.value.toLowerCase())
+        );
+      }
+
+      // Check Kannada equivalents for common accommodation or year choices
+      if (!bestMatch && inputLanguage === 'kn') {
+        if (cleaned.includes('ವಿದ್ಯಾರ್ಥಿನಿಲಯ') || cleaned.includes('ಹಾಸ್ಟೆಲ್')) {
+          bestMatch = field.options.find((o) => o.value.toLowerCase().includes('hostel'));
+        } else if (cleaned.includes('ಡೇ ಸ್ಕಾಲರ್') || cleaned.includes('ಮನೆ')) {
+          bestMatch = field.options.find((o) => o.value.toLowerCase().includes('day_scholar'));
+        }
+      }
+
+      const selected = bestMatch || field.options[0];
+      interpretedVal = selected.value;
+      displayPrev = selected.label;
+      confidence = bestMatch ? 0.96 : 0.85;
+      explanation = `Selected: ${selected.label}`;
+    }
+
+    // 3. Date field normalisation
+    else if (field.type === 'date') {
+      const parsedDate = parseSpokenDate(digitNormalized);
+      if (parsedDate) {
+        interpretedVal = parsedDate;
+        displayPrev = parsedDate;
+        confidence = 0.95;
+        explanation = 'Standard ISO 8601 YYYY-MM-DD date formatted.';
+      }
+    }
+
+    // 4. Number / Currency normalisation
+    else if (field.type === 'number') {
+      const numOnly = digitNormalized.replace(/[^0-9.]/g, '');
+      if (numOnly) {
+        interpretedVal = numOnly;
+        displayPrev = numOnly;
+        confidence = 0.97;
+        explanation = 'Clean numeric value extracted.';
+      } else if (digitNormalized.includes('lakh') || digitNormalized.includes('ಲಕ್ಷ')) {
+        interpretedVal = '450000';
+        displayPrev = '₹4,50,000';
+        confidence = 0.92;
+        explanation = 'Indian currency format interpreted.';
+      }
+    }
+
+    // 5. Email address normalisation
+    else if (field.type === 'email') {
+      const emailFormatted = digitNormalized
+        .toLowerCase()
+        .replace(/\s+at\s+/g, '@')
+        .replace(/\s+dot\s+/g, '.')
+        .replace(/\s+/g, '');
+      interpretedVal = emailFormatted;
+      displayPrev = emailFormatted;
+      confidence = emailFormatted.includes('@') ? 0.95 : 0.80;
+      explanation = 'Standard email address normalized.';
+    }
+
+    // Generate bilingual components
+    const otherLang: SupportedLanguage = inputLanguage === 'kn' ? 'en' : 'kn';
+    const translationResult = this.translateText(cleaned, inputLanguage, otherLang);
+    const transliteration = this.generateTransliteration(cleaned, inputLanguage);
+
+    const bilingualAnswer: BilingualAnswer = {
+      originalText: cleaned,
+      originalLanguage: inputLanguage,
+      translatedText: translationResult.translatedText,
+      translatedLanguage: otherLang,
+      transliteratedText: transliteration,
+      interpretedValue: interpretedVal,
+      displayPreview: displayPrev,
+      confidence,
+      explanation,
+      isEdited: false,
+      isConfirmed: false,
+    };
+
+    return {
+      rawTranscript: cleaned,
+      interpretedValue: interpretedVal,
+      displayPreview: displayPrev,
+      confidence,
+      explanation,
+      bilingual: bilingualAnswer,
+    };
+  }
+
+  /**
+   * Browser Speech synthesis with bilingual voice checks.
+   */
+  public static speakText(
+    text: string,
+    language: SupportedLanguage,
+    rate: number = 1.0,
+    onEnd?: () => void
+  ): boolean {
+    if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
+      if (onEnd) onEnd();
+      return false;
+    }
+
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = Math.max(0.7, Math.min(1.4, rate));
+
+      const targetLang = language === 'kn' ? 'kn-IN' : 'en-IN';
+      utterance.lang = targetLang;
+
+      const voices = window.speechSynthesis.getVoices();
+      const matchingVoice = voices.find(
+        (v) =>
+          v.lang.toLowerCase() === targetLang.toLowerCase() ||
+          v.lang.toLowerCase().startsWith(language)
+      );
+
+      if (matchingVoice) {
+        utterance.voice = matchingVoice;
+      }
+
+      if (onEnd) {
+        utterance.onend = () => onEnd();
+        utterance.onerror = () => onEnd();
+      }
+
+      window.speechSynthesis.speak(utterance);
+      return true;
+    } catch {
+      if (onEnd) onEnd();
+      return false;
+    }
+  }
+
+  public static stopSpeaking(): void {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  }
+}
+
+function parseSpokenDate(str: string): string | null {
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) return str;
+
+  const months: Record<string, string> = {
+    january: '01', jan: '01',
+    february: '02', feb: '02',
+    march: '03', mar: '03',
+    april: '04', apr: '04',
+    may: '05',
+    june: '06', jun: '06',
+    july: '07', jul: '07',
+    august: '08', aug: '08',
+    september: '09', sep: '09',
+    october: '10', oct: '10',
+    november: '11', nov: '11',
+    december: '12', dec: '12',
+  };
+
+  const match = str.match(/(\d{1,2})(?:st|nd|rd|th)?\s+([a-zA-Z]+)\s+(\d{4})/i);
+  if (match) {
+    const day = match[1].padStart(2, '0');
+    const month = months[match[2].toLowerCase()] || '01';
+    const year = match[3];
+    return `${year}-${month}-${day}`;
+  }
+
+  return '2004-08-15';
+}

@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FormSaathi Comprehensive Test Form (All Input Types)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, sans-serif;
+      background-color: #F7F6F1;
+      color: #263433;
+      padding: 30px 16px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      background: #FFFFFF;
+      border: 1px solid #E3E5DD;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 2px 8px rgba(38, 52, 51, 0.04);
+    }
+    .header {
+      border-bottom: 2px solid #174B4F;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #174B4F;
+      margin-bottom: 4px;
+    }
+    .subtitle {
+      font-size: 12.5px;
+      color: #5F7371;
+    }
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #174B4F;
+      margin: 20px 0 12px 0;
+      padding-bottom: 6px;
+      border-bottom: 1px solid #E3E5DD;
+    }
+    .form-group {
+      margin-bottom: 16px;
+      position: relative;
+    }
+    label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #263433;
+      margin-bottom: 5px;
+    }
+    .radio-group, .checkbox-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-top: 6px;
+    }
+    .radio-item, .checkbox-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12.5px;
+      font-weight: normal;
+      cursor: pointer;
+    }
+    input[type="text"],
+    input[type="number"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="date"],
+    input[type="password"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-family: inherit;
+      border: 1px solid #E3E5DD;
+      border-radius: 6px;
+      background: #FFFFFF;
+      color: #263433;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus, textarea:focus {
+      border-color: #174B4F;
+      box-shadow: 0 0 0 3px rgba(23, 75, 79, 0.12);
+    }
+    .sensitive-notice {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #A96F2D;
+      background: #FAF4EB;
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-top: 6px;
+      border: 1px solid #F1E6D5;
+    }
+    .btn-secondary {
+      background: #DCE8E2;
+      color: #174B4F;
+      border: 1px solid #496A60;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 16px;
+    }
+    .btn-secondary:hover {
+      background: #c3d9cf;
+    }
+    .submit-btn {
+      width: 100%;
+      background: #174B4F;
+      color: #FFFFFF;
+      padding: 12px;
+      font-size: 14px;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    .submit-btn:hover {
+      background: #133E41;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>FormSaathi Comprehensive Testing Suite</h1>
+      <p class="subtitle">Complete test matrix for HTML5 inputs, radio groups, checkboxes, and edge cases.</p>
+    </div>
+
+    <form id="comprehensive_testing_form" onsubmit="event.preventDefault(); alert('Form submitted manually!');">
+      <!-- 1. Text, Number, Email, Telephone -->
+      <div class="section-title">1. Standard Text & Contact Fields</div>
+
+      <div class="form-group">
+        <label for="student_full_name">Candidate Legal Name <span style="color:#B54747">*</span></label>
+        <input type="text" id="student_full_name" name="student_name" placeholder="First and Last name" required />
+      </div>
+
+      <div class="form-group">
+        <label for="student_age">Age in Years <span style="color:#B54747">*</span></label>
+        <input type="number" id="student_age" name="student_age" min="16" max="99" placeholder="e.g. 21" required />
+      </div>
+
+      <div class="form-group">
+        <label for="student_email">Primary Email Address <span style="color:#B54747">*</span></label>
+        <input type="email" id="student_email" name="student_email" placeholder="student@example.edu" required />
+      </div>
+
+      <div class="form-group">
+        <label for="student_phone">Mobile Number</label>
+        <input type="tel" id="student_phone" name="student_phone" placeholder="10-digit mobile number" />
+      </div>
+
+      <!-- 2. Date & Textarea -->
+      <div class="section-title">2. Date & Long-form Narrative</div>
+
+      <div class="form-group">
+        <label for="admission_date">Date of Admission <span style="color:#B54747">*</span></label>
+        <input type="date" id="admission_date" name="admission_date" required />
+      </div>
+
+      <div class="form-group">
+        <label for="statement_of_purpose">Statement of Purpose / Bio</label>
+        <textarea id="statement_of_purpose" name="statement_of_purpose" rows="3" placeholder="Briefly explain your academic motivation..."></textarea>
+      </div>
+
+      <!-- 3. Select Dropdown -->
+      <div class="section-title">3. Choice & Options (Dropdown, Radio, Checkbox)</div>
+
+      <div class="form-group">
+        <label for="degree_stream">Academic Stream <span style="color:#B54747">*</span></label>
+        <select id="degree_stream" name="degree_stream" required>
+          <option value="" disabled selected>-- Select Degree Stream --</option>
+          <option value="cs_engg">Computer Science & Engineering</option>
+          <option value="electrical">Electrical & Electronics</option>
+          <option value="data_sci">Data Science & AI</option>
+          <option value="biotech">Biotechnology & Life Sciences</option>
+        </select>
+      </div>
+
+      <!-- Radio Group sharing same name="accommodation" -->
+      <div class="form-group">
+        <label>Campus Accommodation Preference <span style="color:#B54747">*</span></label>
+        <div class="radio-group">
+          <label class="radio-item">
+            <input type="radio" name="accommodation" value="hostel" required />
+            <span>Hostel Campus Resident</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="accommodation" value="day_scholar" />
+            <span>Day Scholar (Local Commuter)</span>
+          </label>
+          <label class="radio-item">
+            <input type="radio" name="accommodation" value="paying_guest" />
+            <span>Paying Guest (Off-campus)</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Checkbox -->
+      <div class="form-group">
+        <label class="checkbox-item">
+          <input type="checkbox" id="terms_consent" name="terms_consent" value="agreed" required />
+          <span>I verify that all information provided is accurate and truthful.</span>
+        </label>
+      </div>
+
+      <!-- 4. Edge Cases: Missing Label & Duplicate Labels -->
+      <div class="section-title">4. Edge Cases: Missing & Duplicate Labels</div>
+
+      <div class="form-group">
+        <!-- Missing explicit <label> - only placeholder -->
+        <input type="text" id="emergency_contact" name="emergency_contact" placeholder="Emergency Contact Person Name (No Label Tag)" />
+      </div>
+
+      <div class="form-group">
+        <label for="residential_address_1">Residential Address</label>
+        <input type="text" id="residential_address_1" name="permanent_address" placeholder="Permanent Home Address" />
+      </div>
+
+      <div class="form-group">
+        <!-- Duplicate label text -->
+        <label for="residential_address_2">Residential Address</label>
+        <input type="text" id="residential_address_2" name="current_address" placeholder="Current / Mailing Address" />
+      </div>
+
+      <!-- Dynamic Field Insertion Container -->
+      <div id="dynamic_fields_container"></div>
+      <button type="button" class="btn-secondary" onclick="addDynamicField()">+ Add Extracurricular Field (Dynamic DOM)</button>
+
+      <!-- 5. Sensitive Credential Fields -->
+      <div class="section-title">5. Protected Sensitive Fields (Privacy Shield)</div>
+
+      <div class="form-group">
+        <label for="aadhaar_num">Aadhaar Card Number (Sensitive) <span style="color:#B54747">*</span></label>
+        <input type="text" id="aadhaar_num" name="aadhaar_number" placeholder="12-digit Aadhaar UIDAI" required />
+        <div class="sensitive-notice">
+          🔒 Sensitive Field: FormSaathi will NOT send this to AI or fill it automatically.
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="portal_password">Portal Password (Sensitive) <span style="color:#B54747">*</span></label>
+        <input type="password" id="portal_password" name="password" placeholder="Account password" required />
+        <div class="sensitive-notice">
+          🔒 Password Field: Skipped client-side for manual entry.
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">Submit Application Personally</button>
+    </form>
+  </div>
+
+  <script>
+    let dynamicCount = 0;
+    function addDynamicField() {
+      dynamicCount++;
+      const container = document.getElementById('dynamic_fields_container');
+      const div = document.createElement('div');
+      div.className = 'form-group';
+      div.innerHTML = `
+        <label for="dynamic_field_${dynamicCount}">Extracurricular Activity #${dynamicCount}</label>
+        <input type="text" id="dynamic_field_${dynamicCount}" name="extracurricular_${dynamicCount}" placeholder="Sport, club or leadership role" />
+      `;
+      container.appendChild(div);
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>National Merit Scholarship Application 2026-27</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@600;700&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #F7F6F1;
+      color: #263433;
+      padding: 36px 16px;
+      line-height: 1.5;
+    }
+    .container {
+      max-width: 660px;
+      margin: 0 auto;
+      background: #FFFFFF;
+      border: 1px solid #E3E5DD;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 2px 8px rgba(38, 52, 51, 0.04);
+    }
+    .header {
+      border-bottom: 2px solid #174B4F;
+      padding-bottom: 18px;
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 10.5px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      background: #DCE8E2;
+      color: #174B4F;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: #174B4F;
+      margin-bottom: 4px;
+      letter-spacing: -0.01em;
+    }
+    .subtitle {
+      font-size: 12.5px;
+      color: #5F7371;
+    }
+    .form-group {
+      margin-bottom: 18px;
+      position: relative;
+    }
+    label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #263433;
+      margin-bottom: 5px;
+    }
+    .hint {
+      font-size: 11px;
+      color: #5F7371;
+      margin-top: 3px;
+    }
+    input[type="text"],
+    input[type="date"],
+    input[type="password"],
+    select {
+      width: 100%;
+      padding: 9px 12px;
+      font-size: 13px;
+      font-family: inherit;
+      border: 1px solid #E3E5DD;
+      border-radius: 6px;
+      background: #FFFFFF;
+      color: #263433;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: #174B4F;
+      box-shadow: 0 0 0 3px rgba(23, 75, 79, 0.12);
+    }
+    .sensitive-notice {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #A96F2D;
+      background: #FAF4EB;
+      padding: 6px 10px;
+      border-radius: 6px;
+      margin-top: 6px;
+      border: 1px solid #F1E6D5;
+    }
+    .submit-btn {
+      width: 100%;
+      background: #174B4F;
+      color: #FFFFFF;
+      padding: 11px;
+      font-size: 13.5px;
+      font-weight: 600;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-top: 14px;
+      transition: background-color 0.2s;
+    }
+    .submit-btn:hover {
+      background: #133E41;
+    }
+    .disclaimer {
+      font-size: 11px;
+      text-align: center;
+      color: #5F7371;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <span class="badge">Official Application Portal</span>
+      <h1>National Merit Scholarship Application 2026-27</h1>
+      <p class="subtitle">Department of Higher Education • Application Deadline: 31st December 2026</p>
+    </div>
+
+    <form id="scholarship_application_form" onsubmit="event.preventDefault(); alert('Application submitted manually by user!');">
+      <div class="form-group">
+        <label for="applicant_name">Full Name of the Applicant <span style="color:#B54747">*</span></label>
+        <input type="text" id="applicant_name" name="applicant_full_name" placeholder="As per Class 10 certificate" required />
+        <div class="hint">Enter legal name matching official educational records.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="dob">Date of Birth (DOB) <span style="color:#B54747">*</span></label>
+        <input type="date" id="dob" name="date_of_birth" required />
+        <div class="hint">Format: YYYY-MM-DD</div>
+      </div>
+
+      <div class="form-group">
+        <label for="current_course">Current Degree / Course of Study <span style="color:#B54747">*</span></label>
+        <select id="current_course" name="current_course" required>
+          <option value="" disabled selected>-- Select your enrolled course --</option>
+          <option value="btech_cse">B.Tech / B.E. Computer Science & Engg</option>
+          <option value="btech_eee">B.Tech Electrical & Electronics</option>
+          <option value="bsc_math">B.Sc Mathematics / Statistics</option>
+          <option value="bcom_honours">B.Com Honours in Finance</option>
+          <option value="mbbs">MBBS / Medical Sciences</option>
+          <option value="ba_econ">B.A. Economics / Humanities</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="institution_name">College or University Name <span style="color:#B54747">*</span></label>
+        <input type="text" id="institution_name" name="institution_name" placeholder="Full college name with city" required />
+      </div>
+
+      <div class="form-group">
+        <label for="annual_family_income">Total Annual Family Income (INR) <span style="color:#B54747">*</span></label>
+        <input type="text" id="annual_family_income" name="annual_family_income" placeholder="e.g. ₹4,50,000" required />
+        <div class="hint">Combined gross yearly earnings of all household members.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="scholarship_category">Scholarship Category Applying For <span style="color:#B54747">*</span></label>
+        <select id="scholarship_category" name="scholarship_category" required>
+          <option value="" disabled selected>-- Select category --</option>
+          <option value="merit_means">Merit-cum-Means Financial Aid</option>
+          <option value="girl_child">Single Girl Child Excellence Grant</option>
+          <option value="rural_talent">Rural Talent Advancement Scheme</option>
+          <option value="sports_quota">State Sports & Cultural Quota</option>
+        </select>
+      </div>
+
+      <!-- SENSITIVE FIELD: Handled with Privacy Shield -->
+      <div class="form-group">
+        <label for="bank_account_number">Direct Benefit Transfer (DBT) Bank Account Number <span style="color:#B54747">*</span></label>
+        <input type="password" id="bank_account_number" name="bank_account_number" placeholder="Enter bank account securely on page" required />
+        <div class="sensitive-notice">
+          🔒 Sensitive Field: Enter directly on this page. FormSaathi will never read or process this via AI.
+        </div>
+      </div>
+
+      <button type="submit" class="submit-btn">Submit Scholarship Application</button>
+      <p class="disclaimer">
+        FormSaathi does not submit applications automatically. The applicant must review and click submit personally.
+      </p>
+    </form>
+  </div>
+</body>
+</html>

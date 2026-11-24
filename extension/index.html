@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>FormSaathi – Voice-First Form Assistant (Dev Mode)</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="bg-paper-ivory text-ink-deep antialiased font-sans select-none min-h-screen">
+    <!-- Local Dev Helper Banner (Quiet, refined, only visible when running on localhost) -->
+    <div class="bg-teal-brand text-white text-[11px] px-4 py-2 border-b border-teal-hover flex items-center justify-between">
+      <div class="flex items-center gap-2">
+        <span class="w-1.5 h-1.5 rounded-full bg-softSage"></span>
+        <span class="font-medium tracking-wide">FormSaathi • Side Panel Preview</span>
+      </div>
+      <a
+        href="/demo"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="bg-teal-hover hover:bg-teal-active text-white px-2 py-0.5 rounded text-[10px] font-medium transition-all flex items-center gap-1 border border-teal-brand"
+      >
+        <span>Open Scholarship Test Form</span>
+        <span>↗</span>
+      </a>
+    </div>
+
+    <!-- Centered Mock Side Panel Container (Standard 420px width) -->
+    <div class="max-w-[430px] mx-auto min-h-[calc(100vh-33px)] bg-paper-ivory shadow-surface border-x border-line-border">
+      <div id="root"></div>
+    </div>
+
+    <script type="module" src="/src/sidepanel/main.tsx"></script>
+  </body>
+</html>

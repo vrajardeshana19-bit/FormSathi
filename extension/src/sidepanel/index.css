@@ -1,0 +1,48 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html, body {
+    margin: 0;
+    padding: 0;
+    background-color: #F7F6F1;
+    color: #263433;
+    font-family: 'Inter', 'Manrope', -apple-system, BlinkMacSystemFont, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Refined, quiet custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #F7F6F1;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #DCE8E2;
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #496A60;
+  }
+}
+
+/* Subtle, calm pulsing animation for voice active state */
+@keyframes calm-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(23, 75, 79, 0.2);
+  }
+  70% {
+    box-shadow: 0 0 0 8px rgba(23, 75, 79, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(23, 75, 79, 0);
+  }
+}
+
+.calm-pulse {
+  animation: calm-pulse 2s infinite ease-out;
+}
