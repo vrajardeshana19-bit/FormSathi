@@ -152,10 +152,25 @@ flowchart TD
     P -->|No| F
     P -->|Yes| Q([✅ User submits manually])
 
-    style A fill:#e3f2fd,stroke:#1976d2
-    style Q fill:#e8f5e9,stroke:#2e7d32
-    style G fill:#fff3e0,stroke:#ef6c00
-    style P fill:#fce4ec,stroke:#c2185b
+    style A fill:#e3f2fd,stroke:#1976d2,color:#111827,stroke-width:2px
+    style Q fill:#e8f5e9,stroke:#2e7d32,color:#111827,stroke-width:2px
+    style G fill:#fff3e0,stroke:#ef6c00,color:#111827,stroke-width:2px
+    style P fill:#fce4ec,stroke:#c2185b,color:#111827,stroke-width:2px
+    style B fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style C fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style D fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style E fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style F fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style G2 fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style H fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style I fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style J fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style K fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style L fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style M fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style N fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style O fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    linkStyle default stroke:#9ca3af,stroke-width:2px
 ```
 
 ---
@@ -201,9 +216,24 @@ flowchart TB
     TTS <--> EL(["🎤 ElevenLabs<br/>text-to-speech"])
     SP -.->|"browser speech recognition"| WSA(["🗣️ Web Speech API"])
 
-    style EXT fill:#e3f2fd,stroke:#1976d2,stroke-width:2px
-    style BE fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px
-    style SENS fill:#fff3e0,stroke:#ef6c00
+    style EXT fill:#e3f2fd,stroke:#1976d2,stroke-width:2px,color:#111827
+    style BE fill:#f3e5f5,stroke:#7b1fa2,stroke-width:2px,color:#111827
+    style SENS fill:#fff3e0,stroke:#ef6c00,color:#111827,stroke-width:2px
+    style MATCH fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style API fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style BG fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style CS fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style EL fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style GEM fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style LLM fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style NORM fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style PAGE fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style PLAN fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style SP fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style TTS fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style U fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style WSA fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    linkStyle default stroke:#9ca3af,stroke-width:2px
 ```
 
 ### Why this split?
@@ -232,14 +262,16 @@ flowchart LR
     R -.->|site rejects| E["🛠️ ERROR<br/>RECOVERY"]
     E -.-> S4
 
-    style S1 fill:#e3f2fd
-    style S2 fill:#fff3e0
-    style S3 fill:#e8eaf6
-    style S4 fill:#f3e5f5
-    style S5 fill:#e0f7fa
-    style S6 fill:#fff8e1
-    style S7 fill:#e8f5e9
-    style R fill:#fce4ec
+    style S1 fill:#e3f2fd,color:#111827,stroke-width:2px
+    style S2 fill:#fff3e0,color:#111827,stroke-width:2px
+    style S3 fill:#e8eaf6,color:#111827,stroke-width:2px
+    style S4 fill:#f3e5f5,color:#111827,stroke-width:2px
+    style S5 fill:#e0f7fa,color:#111827,stroke-width:2px
+    style S6 fill:#fff8e1,color:#111827,stroke-width:2px
+    style S7 fill:#e8f5e9,color:#111827,stroke-width:2px
+    style R fill:#fce4ec,color:#111827,stroke-width:2px
+    style E fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    linkStyle default stroke:#9ca3af,stroke-width:2px
 ```
 
 | # | Stage | Input | Processing | Output |
@@ -306,8 +338,14 @@ flowchart TD
     E --> F[Extension detects field became non-empty<br/>without reading its value]
     F --> G[Move on to next field]
 
-    style D fill:#ffebee,stroke:#c62828
-    style C fill:#e8f5e9,stroke:#2e7d32
+    style D fill:#ffebee,stroke:#c62828,color:#111827,stroke-width:2px
+    style C fill:#e8f5e9,stroke:#2e7d32,color:#111827,stroke-width:2px
+    style A fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style B fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style E fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style F fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style G fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    linkStyle default stroke:#9ca3af,stroke-width:2px
 ```
 
 ### Submit guard (the central trust guarantee)
@@ -400,6 +438,15 @@ flowchart LR
     E -->|Nothing matches| G["LLM: choose one option or NONE"]
     F --> Z
     G --> Z
+    style A fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style B fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style C fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style D fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style E fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style F fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style G fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    style Z fill:#ffffff,stroke:#4b5563,color:#111827,stroke-width:2px
+    linkStyle default stroke:#9ca3af,stroke-width:2px
 ```
 
 Example: "Karnataka" matches `KARNATAKA - 29`.
